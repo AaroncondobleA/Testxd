@@ -51,7 +51,7 @@
     </div>
 
     <audio id="musica-fondo" loop>
-        <source src="musica.mp3" type="audio/mpeg">
+        <source src="music.mp3" type="audio/mpeg">
         Tu navegador no soporta audio.
     </audio>
 
@@ -98,8 +98,9 @@
         const textureLoader = new THREE.TextureLoader();
         
         // RECUERDA: Cambia estos nombres por tus archivos reales de imagen
-        const photoTexture = textureLoader.load('gatito.jpeg'); 
-        const heartTexture = textureLoader.load('corazon.png');   
+        const photoTexture = textureLoader.load('IMG-20260522-WA0041.jpg'); 
+        const heartTexture = textureLoader.load('corazon.png');
+        const photoTexture2 = textureLoader.load('IMG-20260522-WA0041.jpg');
 
         function createParticle(texture, size) {
             const material = new THREE.SpriteMaterial({ map: texture, color: 0xffffff });
