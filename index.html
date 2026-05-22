@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Galaxia de Corazones</title>
+    <title>Galaxia 3D Interactiva</title>
     <style>
-        /* Estilos generales */
+        /* Estilos base */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: sans-serif; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* Pantalla de inicio para permitir el audio en celulares */
+        /* Pantalla de inicio para activar música y videos en celulares */
         #pantalla-inicio {
             position: fixed;
             top: 0;
@@ -51,32 +51,49 @@
     </div>
 
     <audio id="musica-fondo" loop>
-        <source src="music.mp3" type="audio/mpeg">
-        Tu navegador no soporta audio.
+        <source src="musica.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // --- LÓGICA DEL AUDIO Y PANTALLA DE INICIO ---
+        // --- 1. CONFIGURACIÓN DE VIDEOS HTML5 ---
+        // Video 1
+        const video1 = document.createElement('video');
+        video1.src = 'video1.mp4';
+        video1.loop = true;
+        video1.muted = true;
+        video1.playsInline = true; // Vital para que no se abra en pantalla completa en celulares
+
+        // Video 2
+        const video2 = document.createElement('video');
+        video2.src = 'video2.mp4';
+        video2.loop = true;
+        video2.muted = true;
+        video2.playsInline = true;
+
+
+        // --- 2. ACTIVACIÓN MEDIANTE BOTÓN EN MÓVILES ---
         const pantallaInicio = document.getElementById('pantalla-inicio');
         const botonEntrar = document.getElementById('btn-entrar');
         const musica = document.getElementById('musica-fondo');
 
         botonEntrar.addEventListener('click', () => {
-            // Intentar reproducir la música (ahora el celular lo permite porque el usuario hizo "click")
-            musica.play().catch(error => console.log("Error al reproducir audio:", error));
+            // Arrancar música
+            musica.play().catch(e => console.log("Error de audio:", e));
             
-            // Desvanecer la pantalla de inicio
+            // Arrancar videos
+            video1.play().catch(e => console.log("Error video 1:", e));
+            video2.play().catch(e => console.log("Error video 2:", e));
+            
+            // Ocultar pantalla de bienvenida
             pantallaInicio.style.opacity = '0';
-            setTimeout(() => {
-                pantallaInicio.style.display = 'none';
-            }, 1000);
+            setTimeout(() => { pantallaInicio.style.display = 'none'; }, 1000);
         });
 
 
-        // --- LÓGICA DE LA GALAXIA 3D ---
+        // --- 3. CONFIGURACIÓN DEL ENTORNO 3D ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         
@@ -85,28 +102,41 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
+        // Controles táctiles
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.enableZoom = true;
         controls.minDistance = 20;
         controls.maxDistance = 120;
 
+        // El grupo contenedor de nuestra galaxia
         const galaxy = new THREE.Group();
         scene.add(galaxy);
 
+
+        // --- 4. CARGA DE TEXTURAS (IMÁGENES Y VIDEOS) ---
         const textureLoader = new THREE.TextureLoader();
         
-        // RECUERDA: Cambia estos nombres por tus archivos reales de imagen
-        const photoTexture = textureLoader.load('gatito.jpeg'); 
-        const heartTexture = textureLoader.load('corazon.png');   
+        // Texturas estáticas
+        const corazonTex = textureLoader.load('corazon.png');
+        const foto1 = textureLoader.load('tu_imagen1.jpg');
+        const foto2 = textureLoader.load('tu_imagen2.jpg');
+        const foto3 = textureLoader.load('tu_imagen3.jpg');
+        const foto4 = textureLoader.load('tu_imagen4.jpg');
+        const foto5 = textureLoader.load('tu_imagen5.jpg');
 
+        // Texturas de Video
+        const videoTex1 = new THREE.VideoTexture(video1);
+        const videoTex2 = new THREE.VideoTexture(video2);
+
+
+        // --- 5. FUNCIÓN PARA CREAR PARTÍCULAS ---
         function createParticle(texture, size) {
             const material = new THREE.SpriteMaterial({ map: texture, color: 0xffffff });
             const sprite = new THREE.Sprite(material);
             
-            // Distribución esférica aleatoria
-            const r = 50 * Math.random();
+            // Distribución tridimensional esférica
+            const r = 55 * Math.random();
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             
@@ -118,32 +148,15 @@
             return sprite;
         }
 
-        // Añadir elementos a la galaxia
-        for (let i = 0; i < 100; i++) galaxy.add(createParticle(heartTexture, 2.5));
-        for (let i = 0; i < 50; i++)  galaxy.add(createParticle(photoTexture, 4.5));
 
-        camera.position.z = 75;
-
-        // Animación continua
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            // Rotación automática suave de la galaxia
-            galaxy.rotation.y += 0.0012; 
-            galaxy.rotation.x += 0.0004; 
-
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Ajuste por si el usuario voltea el celular
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        });
-    </script>
-</body>
-</html>
+        // --- 6. AGREGAR ELEMENTOS A LA GALAXIA ---
+        // Agregamos 100 corazones de fondo
+        for (let i = 0; i < 100; i++) galaxy.add(createParticle(corazonTex, 2.5));
+        
+        // Agregamos las 5 fotos fijas (10 copias de cada una esparcidas)
+        for (let i = 0; i < 10; i++) {
+            galaxy.add(createParticle(foto1, 4.5));
+            galaxy.add(createParticle(foto2, 4.5));
+            galaxy.add(createParticle(foto3, 4.5));
+            galaxy.add(createParticle(foto4, 4.5));
+            galaxy.add(createParticle(foto5, 4.
